@@ -109,11 +109,11 @@ body:before{background:#2865d9;top:5%;left:-100px}body:after{background:#d6a13f;
 </main>
 <script>
 const questions = [
- {text:"Какой мой любимый цвет?",options:["Красный","Чёрный","Индиго","Зелёный"],correct:1,points:100,level:"Разминка"},
- {text:"Чего я боюсь?",options:["Темноты","Пауков","Высоты","Крови"],correct:2,points:200,level:"Уже интереснее"},
+ {text:"Какой мой любимый цвет?",options:["Красный","Чёрный","Индиго","Зелёный"],correct:1,points:100,level:"Разминка",wrongMessage:"Ты серьёзно?"},
+ {text:"Чего я боюсь?",options:["Темноты","Пауков","Высоты","Крови"],correct:2,points:200,level:"Уже интереснее",wrongMessage:"Мы же были с тобой в парке аттракционов"},
  {text:"Вопрос для самых внимательных: сколько сантиметров?",options:["16 см","18 см","20 см","Это секрет"],correct:2,points:500,level:"Личный вопрос"},
- {text:"Кто я по профессии?",options:["DevOps-инженер","DBA","Разработчик игр","Сетевой инженер"],correct:1,points:1000,level:"Проверка знаний"},
- {text:"Какую фразу на французском я тебе сказал, что ты удивилась?",options:["Je t’aime","Mon cœur","Ma chérie","Tu me manques"],correct:1,points:2000,level:"Финальный вопрос"}
+ {text:"Кто я по профессии?",options:["DevOps-инженер","DBA","Разработчик игр","Сетевой инженер"],correct:1,points:1000,level:"Проверка знаний",wrongMessage:"Не так страшно"},
+ {text:"Какую фразу на французском я тебе сказал, что ты удивилась?",options:["Je t’aime","Mon cœur","Ma chérie","Tu me manques"],correct:1,points:2000,level:"Финальный вопрос",wrongMessage:"Можно было и запомнить"}
 ];
 let current=0,score=0,locked=false,wrongAnswers=0;
 const BONUS_POINTS=1000;
@@ -138,7 +138,7 @@ function renderQuestion(){
 function choose(index){
  if(locked)return;locked=true;const q=questions[current];const buttons=[...$("answers").children];
  buttons.forEach((b,i)=>{b.disabled=true;if(i===q.correct)b.classList.add("correct");if(i===index&&i!==q.correct)b.classList.add("wrong")});
- if(index===q.correct){score+=q.points;$("feedback").textContent="Верно. Александр одобряет."; }else{wrongAnswers++;$("feedback").textContent="Неправильно. Но шанс на свидание всё ещё есть."}
+ if(index===q.correct){score+=q.points;$("feedback").textContent="Верно. Александр одобряет."; }else{wrongAnswers++;$("feedback").textContent=q.wrongMessage||"Неправильно. Но шанс на свидание всё ещё есть."}
  $("score").textContent=score+" очков";
  $("next").textContent=current===questions.length-1?"Получить приз":"Следующий вопрос";
  $("next").classList.remove("hidden");
