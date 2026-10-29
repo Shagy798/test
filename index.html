@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#071126">
+<title>Главная игра</title>
+<style>
+:root{color-scheme:dark;--bg:#050b19;--panel:#0c1a36;--panel2:#10264b;--gold:#e9bd68;--gold2:#ffe6a5;--muted:#a8b7d3;--white:#f8f9ff;--line:rgba(233,189,104,.38)}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% 0%,#183365 0%,#09152d 38%,#040916 78%);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--white);display:flex;align-items:center;justify-content:center;padding:22px;overflow-x:hidden}
+body:before,body:after{content:"";position:fixed;width:240px;height:240px;border-radius:50%;filter:blur(85px);opacity:.16;pointer-events:none}
+body:before{background:#2865d9;top:5%;left:-100px}body:after{background:#d6a13f;right:-120px;bottom:4%}
+.shell{width:min(100%,760px);position:relative}
+.topline{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:11px;letter-spacing:.19em;text-transform:uppercase;margin:0 2px 16px}
+.live{display:flex;align-items:center;gap:8px}.dot{width:7px;height:7px;background:#f1c86f;border-radius:50%;box-shadow:0 0 12px #f1c86f}
+.stage{border:1px solid var(--line);background:linear-gradient(155deg,rgba(15,35,71,.97),rgba(5,13,30,.98));border-radius:24px;box-shadow:0 24px 90px #0008,inset 0 1px #ffffff0d;padding:clamp(22px,5vw,44px);overflow:hidden;position:relative}
+.stage:before{content:"";position:absolute;inset:0 0 auto;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.kicker{text-align:center;color:var(--gold);font-size:11px;font-weight:800;letter-spacing:.27em;text-transform:uppercase}
+.logo{margin:17px auto 12px;text-align:center;font-weight:900;line-height:.98;letter-spacing:-.045em;font-size:clamp(34px,7vw,58px);text-shadow:0 3px 28px #7a9ff333}
+.logo span{display:block;color:var(--gold2);font-size:.72em;letter-spacing:.14em;margin-top:9px}
+.rule{height:1px;background:linear-gradient(90deg,transparent,var(--line),transparent);margin:24px 0}
+.prize-label{text-align:center;color:var(--gold);font-size:11px;letter-spacing:.24em;font-weight:800}
+.prize{font-family:Georgia,"Times New Roman",serif;text-align:center;font-size:clamp(25px,5vw,39px);line-height:1.15;margin:12px auto 15px;max-width:570px}
+.intro-copy{text-align:center;color:var(--muted);line-height:1.6;font-size:14px;max-width:450px;margin:0 auto}
+.button{border:0;cursor:pointer;border-radius:12px;padding:15px 20px;font:800 13px inherit;letter-spacing:.12em;text-transform:uppercase;transition:transform .18s,filter .18s,background .18s}
+.button:hover{transform:translateY(-2px);filter:brightness(1.1)}.button:focus-visible,.answer:focus-visible{outline:2px solid var(--gold2);outline-offset:3px}
+.primary{display:block;width:min(100%,330px);margin:27px auto 0;color:#111728;background:linear-gradient(135deg,#ffe9a8,#d8a746);box-shadow:0 8px 28px #d6a13f25}
+.footnote{text-align:center;color:#7384a4;font-size:11px;margin:17px 0 0;letter-spacing:.04em}
+.hidden{display:none!important}
+.quiz-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:24px}
+.pill{border:1px solid #ffffff1b;background:#ffffff08;color:var(--muted);border-radius:99px;padding:8px 11px;font-size:11px;letter-spacing:.08em}
+.progress{height:4px;background:#ffffff12;border-radius:8px;overflow:hidden;margin:0 0 28px}.progress-bar{height:100%;background:linear-gradient(90deg,#b98732,#ffe6a5);width:20%;transition:width .3s}
+.question-number{text-align:center;color:var(--gold);font-size:11px;letter-spacing:.2em;text-transform:uppercase}
+.question{font-size:clamp(23px,4.5vw,34px);line-height:1.2;text-align:center;margin:13px auto 27px;max-width:580px}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.answer{display:flex;align-items:center;gap:12px;min-height:66px;text-align:left;border:1px solid #45608c80;border-radius:12px;background:linear-gradient(120deg,#10264a,#0b1b37);color:var(--white);padding:14px;cursor:pointer;font:500 14px/1.35 inherit;transition:border-color .2s,background .2s,transform .2s}
+.answer:hover:not(:disabled){border-color:var(--gold);transform:translateY(-1px);background:#18345d}
+.letter{flex:0 0 28px;height:28px;display:grid;place-items:center;border:1px solid #b88c456b;border-radius:50%;color:var(--gold);font-size:12px;font-weight:800}
+.answer.correct{border-color:#71d8a2;background:#123d3b}.answer.correct .letter{color:#b7ffcf;border-color:#71d8a2}
+.answer.wrong{border-color:#ed7777;background:#401d2b}.answer.wrong .letter{color:#ffb6b6;border-color:#ed7777}
+.answer:disabled{cursor:default}
+.feedback{min-height:25px;text-align:center;color:var(--muted);font-size:13px;margin:17px 0 0}
+.next{display:block;margin:14px auto 0;min-width:190px}
+.result-mark{width:76px;height:76px;border:1px solid var(--gold);border-radius:50%;display:grid;place-items:center;color:var(--gold2);font-size:35px;margin:0 auto 20px;box-shadow:0 0 35px #d6a13f20}
+.final-title{text-align:center;font-size:clamp(34px,7vw,54px);line-height:1;margin:10px 0 18px}
+.final-prize{font:clamp(27px,5vw,41px)/1.15 Georgia,"Times New Roman",serif;text-align:center;color:var(--gold2);margin:20px auto;max-width:580px}
+.final-copy{text-align:center;color:var(--muted);line-height:1.7;max-width:480px;margin:0 auto}
+.signature{text-align:center;color:var(--gold);font-size:12px;letter-spacing:.12em;margin-top:25px}
+@media(max-width:540px){body{padding:12px}.stage{border-radius:18px;padding:24px 17px}.answers{grid-template-columns:1fr;gap:9px}.answer{min-height:56px}.topline{font-size:9px}.quiz-head{margin-bottom:18px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<main class="shell">
+  <div class="topline"><span>Специальный выпуск</span><span class="live"><i class="dot"></i>Игра началась</span></div>
+  <section class="stage" id="intro">
+    <div class="kicker">Один участник. Пять вопросов.</div>
+    <h1 class="logo">КТО ХОЧЕТ СТАТЬ<span>МИЛЛИОНЕРОМ?</span></h1>
+    <div class="rule"></div>
+    <div class="prize-label">ГЛАВНЫЙ ПРИЗ</div>
+    <div class="prize">Свидание с неповторимым Александром Коцаревым</div>
+    <p class="intro-copy">Проверь, насколько хорошо ты знаешь человека, который подготовил для тебя эту игру. На кону — приз, который нельзя купить за деньги.</p>
+    <button class="button primary" id="start">Начать игру</button>
+    <p class="footnote">Подсказки не предусмотрены. Уверенность — предусмотрена.</p>
+  </section>
+  <section class="stage hidden" id="game" aria-live="polite">
+    <div class="quiz-head"><span class="pill" id="round">ВОПРОС 1 ИЗ 5</span><span class="pill" id="score">0 очков</span></div>
+    <div class="progress"><div class="progress-bar" id="progress"></div></div>
+    <div class="question-number" id="level">Разминка · 100 очков</div>
+    <h2 class="question" id="question"></h2>
+    <div class="answers" id="answers"></div>
+    <p class="feedback" id="feedback" role="status"></p>
+    <button class="button primary next hidden" id="next">Следующий вопрос</button>
+  </section>
+  <section class="stage hidden" id="ending">
+    <div class="result-mark">★</div>
+    <div class="kicker">Игра окончена</div>
+    <h2 class="final-title">ПОЗДРАВЛЯЕМ!</h2>
+    <p class="final-copy" id="result-copy">Ты прошла испытание.</p>
+    <div class="rule"></div>
+    <div class="prize-label">ТВОЙ ГЛАВНЫЙ ПРИЗ</div>
+    <div class="final-prize">Свидание с неповторимым Александром Коцаревым</div>
+    <p class="final-copy">Приз не обменивается на деньги. Дата и место обсуждаются с обладательницей.</p>
+    <div class="signature">ПРИЗ ПРИНЯТ. ОТКАЗ НЕ ПРЕДУСМОТРЕН* </div>
+    <p class="footnote">*Шутка. Но свидание — вполне серьёзное предложение.</p>
+    <button class="button primary" id="again">Сыграть ещё раз</button>
+  </section>
+</main>
+<script>
+const questions = [
+ {text:"Какой мой любимый цвет?",options:["Красный","Чёрный","Индиго","Зелёный"],correct:1,points:100,level:"Разминка"},
+ {text:"Чего я боюсь?",options:["Темноты","Пауков","Высоты","Крови"],correct:2,points:200,level:"Уже интереснее"},
+ {text:"Вопрос для самых внимательных: сколько сантиметров?",options:["16 см","18 см","20 см","Это секрет"],correct:2,points:500,level:"Личный вопрос"},
+ {text:"Кто я по профессии?",options:["DevOps-инженер","DBA","Разработчик игр","Сетевой инженер"],correct:1,points:1000,level:"Проверка знаний"},
+ {text:"Какую фразу на французском я тебе сказал, что ты удивилась?",options:["Je t’aime","Mon cœur","Ma chérie","Tu me manques"],correct:1,points:2000,level:"Финальный вопрос"}
+];
+let current=0,score=0,locked=false;
+const $=id=>document.getElementById(id);
+function show(id){["intro","game","ending"].forEach(s=>$(s).classList.toggle("hidden",s!==id))}
+function renderQuestion(){
+ locked=false;const q=questions[current];
+ $("round").textContent="ВОПРОС "+(current+1)+" ИЗ "+questions.length;
+ $("score").textContent=score+" очков";
+ $("progress").style.width=((current+1)/questions.length*100)+"%";
+ $("level").textContent=q.level+" · "+q.points+" очков";
+ $("question").textContent=q.text;$("feedback").textContent="";$("next").classList.add("hidden");
+ $("answers").replaceChildren();
+ q.options.forEach((option,i)=>{
+  const b=document.createElement("button");b.className="answer";
+  const letter=document.createElement("span");letter.className="letter";letter.textContent=String.fromCharCode(65+i);
+  const label=document.createElement("span");label.textContent=option;
+  b.append(letter,label);b.addEventListener("click",()=>choose(i));$("answers").append(b);
+ });
+}
+function choose(index){
+ if(locked)return;locked=true;const q=questions[current];const buttons=[...$("answers").children];
+ buttons.forEach((b,i)=>{b.disabled=true;if(i===q.correct)b.classList.add("correct");if(i===index&&i!==q.correct)b.classList.add("wrong")});
+ if(index===q.correct){score+=q.points;$("feedback").textContent="Верно. Александр одобряет."; }else{$("feedback").textContent="Неправильно. Но шанс на свидание всё ещё есть."}
+ $("score").textContent=score+" очков";
+ $("next").textContent=current===questions.length-1?"Получить приз":"Следующий вопрос";
+ $("next").classList.remove("hidden");
+}
+function finish(){
+ $("result-copy").textContent=score===questions.reduce((s,q)=>s+q.points,0)?"Все ответы верны. Александр впечатлён — хотя, будем честны, он и так надеялся на этот финал.":"Ты набрала "+score+" из "+questions.reduce((s,q)=>s+q.points,0)+" очков. Результат засчитан: главный приз всё равно ждёт тебя.";
+ show("ending");
+}
+$("start").addEventListener("click",()=>{current=0;score=0;show("game");renderQuestion()});
+$("next").addEventListener("click",()=>{if(current<questions.length-1){current++;renderQuestion()}else finish()});
+$("again").addEventListener("click",()=>{current=0;score=0;show("game");renderQuestion()});
+</script>
+</body>
+</html>
