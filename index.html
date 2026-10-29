@@ -42,6 +42,10 @@ body:before{background:#2865d9;top:5%;left:-100px}body:after{background:#d6a13f;
 .answer:disabled{cursor:default}
 .feedback{min-height:25px;text-align:center;color:var(--muted);font-size:13px;margin:17px 0 0}
 .next{display:block;margin:14px auto 0;min-width:190px}
+.secondary{display:block;width:min(100%,330px);margin:12px auto 0;color:var(--gold2);background:#ffffff08;border:1px solid var(--line)}
+.super-options{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:24px}
+.super-options .button{width:100%;min-height:54px;letter-spacing:.04em;text-transform:none}
+@media(max-width:540px){.super-options{grid-template-columns:1fr}}
 .result-mark{width:76px;height:76px;border:1px solid var(--gold);border-radius:50%;display:grid;place-items:center;color:var(--gold2);font-size:35px;margin:0 auto 20px;box-shadow:0 0 35px #d6a13f20}
 .final-title{text-align:center;font-size:clamp(34px,7vw,54px);line-height:1;margin:10px 0 18px}
 .final-prize{font:clamp(27px,5vw,41px)/1.15 Georgia,"Times New Roman",serif;text-align:center;color:var(--gold2);margin:20px auto;max-width:580px}
@@ -73,6 +77,22 @@ body:before{background:#2865d9;top:5%;left:-100px}body:after{background:#d6a13f;
     <p class="feedback" id="feedback" role="status"></p>
     <button class="button primary next hidden" id="next">Следующий вопрос</button>
   </section>
+  <section class="stage hidden" id="super-intro">
+    <div class="kicker">Дополнительный раунд</div>
+    <h2 class="question" style="margin-top:22px">Вы готовы на суперигру?</h2>
+    <p class="intro-copy">Основные вопросы позади. Но Александр приготовил ещё кое-что.</p>
+    <div class="super-options">
+      <button class="button primary" id="super-yes" style="margin:0">Да, конечно</button>
+      <button class="button secondary" id="super-no" style="margin:0">Нет, мне страшно</button>
+    </div>
+  </section>
+  <section class="stage hidden" id="super-question" aria-live="polite">
+    <div class="kicker">Суперигра · бонусный вопрос</div>
+    <h2 class="question" style="margin-top:22px">Что произойдёт, если ты ответила на эти вопросы не с первого раза?</h2>
+    <div class="answers" id="super-answers"></div>
+    <p class="feedback" id="super-feedback" role="status"></p>
+    <button class="button primary hidden" id="super-finish">Узнать результат</button>
+  </section>
   <section class="stage hidden" id="ending">
     <div class="result-mark">★</div>
     <div class="kicker">Игра окончена</div>
@@ -97,7 +117,7 @@ const questions = [
 ];
 let current=0,score=0,locked=false;
 const $=id=>document.getElementById(id);
-function show(id){["intro","game","ending"].forEach(s=>$(s).classList.toggle("hidden",s!==id))}
+function show(id){["intro","game","super-intro","super-question","ending"].forEach(s=>$(s).classList.toggle("hidden",s!==id))}
 function renderQuestion(){
  locked=false;const q=questions[current];
  $("round").textContent="ВОПРОС "+(current+1)+" ИЗ "+questions.length;
@@ -121,12 +141,41 @@ function choose(index){
  $("next").textContent=current===questions.length-1?"Получить приз":"Следующий вопрос";
  $("next").classList.remove("hidden");
 }
+function renderSuperQuestion(){
+ show("super-question");
+ $("super-feedback").textContent="";
+ $("super-finish").classList.add("hidden");
+ $("super-answers").replaceChildren();
+ const options=[
+  "Придётся пересдавать экзамен",
+  "Приз достанется другому участнику",
+  "Александр сделает вид, что так и задумано",
+  "Придётся отрабатывать"
+ ];
+ options.forEach((option,i)=>{
+  const b=document.createElement("button");b.className="answer";
+  const letter=document.createElement("span");letter.className="letter";letter.textContent=String.fromCharCode(65+i);
+  const label=document.createElement("span");label.textContent=option;
+  b.append(letter,label);
+  b.addEventListener("click",()=>{
+   [...$("super-answers").children].forEach((btn,j)=>{btn.disabled=true;if(j===2)btn.classList.add("correct");if(i===j&&j!==2)btn.classList.add("wrong")});
+   $("super-feedback").textContent=i===2
+    ?"Именно. Главное — уверенно делать вид, что всё шло по плану."
+    :"Хорошая попытка. Но Александр, конечно, сделает вид, что так и задумано.";
+   $("super-finish").classList.remove("hidden");
+  });
+  $("super-answers").append(b);
+ });
+}
 function finish(){
  $("result-copy").textContent=score===questions.reduce((s,q)=>s+q.points,0)?"Все ответы верны. Александр впечатлён — хотя, будем честны, он и так надеялся на этот финал.":"Ты набрала "+score+" из "+questions.reduce((s,q)=>s+q.points,0)+" очков. Результат засчитан: главный приз всё равно ждёт тебя.";
  show("ending");
 }
 $("start").addEventListener("click",()=>{current=0;score=0;show("game");renderQuestion()});
-$("next").addEventListener("click",()=>{if(current<questions.length-1){current++;renderQuestion()}else finish()});
+$("next").addEventListener("click",()=>{if(current<questions.length-1){current++;renderQuestion()}else show("super-intro")});
+$("super-yes").addEventListener("click",renderSuperQuestion);
+$("super-no").addEventListener("click",renderSuperQuestion);
+$("super-finish").addEventListener("click",finish);
 $("again").addEventListener("click",()=>{current=0;score=0;show("game");renderQuestion()});
 </script>
 </body>
