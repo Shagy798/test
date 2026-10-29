@@ -111,7 +111,7 @@ body:before{background:#2865d9;top:5%;left:-100px}body:after{background:#d6a13f;
 const questions = [
  {text:"Какой мой любимый цвет?",options:["Красный","Чёрный","Индиго","Зелёный"],correct:1,points:100,level:"Разминка",wrongMessage:"Ты серьёзно?"},
  {text:"Чего я боюсь?",options:["Темноты","Пауков","Высоты","Крови"],correct:2,points:200,level:"Уже интереснее",wrongMessage:"Мы же были с тобой в парке аттракционов"},
- {text:"Вопрос для самых внимательных: сколько сантиметров?",options:["16 см","18 см","20 см","Это секрет"],correct:2,points:500,level:"Личный вопрос"},
+ {text:"Вопрос для самых внимательных: сколько сантиметров?",options:["16 см","18 см","20 см","Это секрет"],correct:2,points:500,level:"Личный вопрос",wrongMessage:"???"},
  {text:"Кто я по профессии?",options:["DevOps-инженер","DBA","Разработчик игр","Сетевой инженер"],correct:1,points:1000,level:"Проверка знаний",wrongMessage:"Не так страшно"},
  {text:"Какую фразу на французском я тебе сказал, что ты удивилась?",options:["Je t’aime","Mon cœur","Ma chérie","Tu me manques"],correct:1,points:2000,level:"Финальный вопрос",wrongMessage:"Можно было и запомнить"}
 ];
@@ -137,9 +137,8 @@ function renderQuestion(){
 }
 function choose(index){
  if(locked)return;locked=true;const q=questions[current];const buttons=[...$("answers").children];
- const wrongMessages=["Ты серьёзно?","Мы же были с тобой в парке аттракционов",null,"Не так страшно","Можно было и запомнить"];
  buttons.forEach((b,i)=>{b.disabled=true;if(i===q.correct)b.classList.add("correct");if(i===index&&i!==q.correct)b.classList.add("wrong")});
- if(index===q.correct){score+=q.points;$("feedback").textContent="Верно. Александр одобряет."; }else{wrongAnswers++;$("feedback").textContent=wrongMessages[current]||"Неправильно. Но шанс на свидание всё ещё есть."}
+ if(index===q.correct){score+=q.points;$("feedback").textContent="Верно. Александр одобряет.";}else{wrongAnswers++;$("feedback").textContent=q.wrongMessage??"Неправильно. Но шанс на свидание всё ещё есть.";}
  $("score").textContent=score+" очков";
  $("next").textContent=current===questions.length-1?"Получить приз":"Следующий вопрос";
  $("next").classList.remove("hidden");
@@ -149,12 +148,7 @@ function renderSuperQuestion(){
  $("super-feedback").textContent="";
  $("super-finish").classList.add("hidden");
  $("super-answers").replaceChildren();
- const options=[
-  "Придётся пересдавать экзамен",
-  "Приз достанется другому участнику",
-  "Александр сделает вид, что так и задумано",
-  "Придётся отрабатывать"
- ];
+ const options=["Придётся пересдавать экзамен","Приз достанется другому участнику","Александр сделает вид, что так и задумано","Придётся отрабатывать"];
  options.forEach((option,i)=>{
   const b=document.createElement("button");b.className="answer";
   const letter=document.createElement("span");letter.className="letter";letter.textContent=String.fromCharCode(65+i);
