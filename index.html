@@ -115,7 +115,9 @@ const questions = [
  {text:"Кто я по профессии?",options:["DevOps-инженер","DBA","Разработчик игр","Сетевой инженер"],correct:1,points:1000,level:"Проверка знаний"},
  {text:"Какую фразу на французском я тебе сказал, что ты удивилась?",options:["Je t’aime","Mon cœur","Ma chérie","Tu me manques"],correct:1,points:2000,level:"Финальный вопрос"}
 ];
-let current=0,score=0,locked=false;
+let current=0,score=0,locked=false,wrongAnswers=0;
+const BONUS_POINTS=1000;
+const maxScore=questions.reduce((sum,q)=>sum+q.points,0)+BONUS_POINTS;
 const $=id=>document.getElementById(id);
 function show(id){["intro","game","super-intro","super-question","ending"].forEach(s=>$(s).classList.toggle("hidden",s!==id))}
 function renderQuestion(){
@@ -136,7 +138,7 @@ function renderQuestion(){
 function choose(index){
  if(locked)return;locked=true;const q=questions[current];const buttons=[...$("answers").children];
  buttons.forEach((b,i)=>{b.disabled=true;if(i===q.correct)b.classList.add("correct");if(i===index&&i!==q.correct)b.classList.add("wrong")});
- if(index===q.correct){score+=q.points;$("feedback").textContent="Верно. Александр одобряет."; }else{$("feedback").textContent="Неправильно. Но шанс на свидание всё ещё есть."}
+ if(index===q.correct){score+=q.points;$("feedback").textContent="Верно. Александр одобряет."; }else{wrongAnswers++;$("feedback").textContent="Неправильно. Но шанс на свидание всё ещё есть."}
  $("score").textContent=score+" очков";
  $("next").textContent=current===questions.length-1?"Получить приз":"Следующий вопрос";
  $("next").classList.remove("hidden");
@@ -158,25 +160,28 @@ function renderSuperQuestion(){
   const label=document.createElement("span");label.textContent=option;
   b.append(letter,label);
   b.addEventListener("click",()=>{
-   [...$("super-answers").children].forEach((btn,j)=>{btn.disabled=true;if(j===2)btn.classList.add("correct");if(i===j&&j!==2)btn.classList.add("wrong")});
-   $("super-feedback").textContent=i===2
-    ?"Именно. Главное — уверенно делать вид, что всё шло по плану."
-    :"Хорошая попытка. Но Александр, конечно, сделает вид, что так и задумано.";
+   [...$("super-answers").children].forEach((btn,j)=>{btn.disabled=true;if(j===3)btn.classList.add("correct");if(i===j&&j!==3)btn.classList.add("wrong")});
+   if(i===3){score+=BONUS_POINTS;$("super-feedback").textContent="Правильно! Но не расслабляйся: приз сам себя не отрабатывает.";}else{wrongAnswers++;$("super-feedback").textContent="Не угадала! Кажется, придётся отрабатывать. Хотя, если честно, это было неизбежно."}
    $("super-finish").classList.remove("hidden");
   });
   $("super-answers").append(b);
  });
 }
 function finish(){
- $("result-copy").textContent=score===questions.reduce((s,q)=>s+q.points,0)?"Все ответы верны. Александр впечатлён — хотя, будем честны, он и так надеялся на этот финал.":"Ты набрала "+score+" из "+questions.reduce((s,q)=>s+q.points,0)+" очков. Результат засчитан: главный приз всё равно ждёт тебя.";
+ const allCorrect=wrongAnswers===0;
+ $("result-copy").textContent="ИТОГОВЫЙ СЧЁТ: "+score+" из "+maxScore+" баллов. "+(
+  allCorrect
+   ?"Безупречный результат! Ты ответила на всё правильно. К сожалению, призовой фонд не предусматривает освобождение от отработки — придётся отрабатывать в особо приятной обстановке."
+   :"Ошибки были, баллы потеряны: "+wrongAnswers+" неверн. "+(wrongAnswers===1?"ответ":"ответа/ответов")+". По правилам Александра придётся отрабатывать. Хорошая новость: формат отработки можно обсудить лично."
+ );
  show("ending");
 }
-$("start").addEventListener("click",()=>{current=0;score=0;show("game");renderQuestion()});
+$("start").addEventListener("click",()=>{current=0;score=0;wrongAnswers=0;show("game");renderQuestion()});
 $("next").addEventListener("click",()=>{if(current<questions.length-1){current++;renderQuestion()}else show("super-intro")});
 $("super-yes").addEventListener("click",renderSuperQuestion);
 $("super-no").addEventListener("click",renderSuperQuestion);
 $("super-finish").addEventListener("click",finish);
-$("again").addEventListener("click",()=>{current=0;score=0;show("game");renderQuestion()});
+$("again").addEventListener("click",()=>{current=0;score=0;wrongAnswers=0;show("game");renderQuestion()});
 </script>
 </body>
 </html>
