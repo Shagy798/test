@@ -137,8 +137,9 @@ function renderQuestion(){
 }
 function choose(index){
  if(locked)return;locked=true;const q=questions[current];const buttons=[...$("answers").children];
+ const wrongMessages=["Ты серьёзно?","Мы же были с тобой в парке аттракционов",null,"Не так страшно","Можно было и запомнить"];
  buttons.forEach((b,i)=>{b.disabled=true;if(i===q.correct)b.classList.add("correct");if(i===index&&i!==q.correct)b.classList.add("wrong")});
- if(index===q.correct){score+=q.points;$("feedback").textContent="Верно. Александр одобряет."; }else{wrongAnswers++;$("feedback").textContent=q.wrongMessage||"Неправильно. Но шанс на свидание всё ещё есть."}
+ if(index===q.correct){score+=q.points;$("feedback").textContent="Верно. Александр одобряет."; }else{wrongAnswers++;$("feedback").textContent=wrongMessages[current]||"Неправильно. Но шанс на свидание всё ещё есть."}
  $("score").textContent=score+" очков";
  $("next").textContent=current===questions.length-1?"Получить приз":"Следующий вопрос";
  $("next").classList.remove("hidden");
